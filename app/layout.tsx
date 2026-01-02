@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: "Escribe, reflexiona y haz seguimiento de tu bienestar emocional cada día.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/book.svg",
         width: 1200,
         height: 630,
         alt: "Mi Diario Personal",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Mi Diario Personal",
     description: "Tu espacio personal para reflexionar y escribir día a día.",
-    images: ["/og-image.png"],
+    images: ["/book.svg"],
   },
   robots: {
     index: true,
@@ -55,19 +55,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
+        url: "/book.svg",
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/icon-dark-32x32.png",
+        url: "/book.svg",
         media: "(prefers-color-scheme: dark)",
       },
       {
-        url: "/icon.svg",
+        url: "/book.svg",
         type: "image/svg+xml",
       },
     ],
-    apple: "/apple-icon.png",
+    apple: "/book.svg",
   },
   manifest: "/manifest.json",
 }
