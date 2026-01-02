@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: "Escribe, reflexiona y haz seguimiento de tu bienestar emocional cada día.",
     images: [
       {
-        url: "/book.svg",
+        url: "/book-light.svg",
         width: 1200,
         height: 630,
         alt: "Mi Diario Personal",
@@ -55,19 +55,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/book.svg",
+        url: "/book-light.svg",
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/book.svg",
+        url: "/book-dark.svg",
         media: "(prefers-color-scheme: dark)",
       },
       {
-        url: "/book.svg",
+        url: "/book-light.svg",
         type: "image/svg+xml",
       },
     ],
-    apple: "/book.svg",
+    apple: "/book-light.svg",
   },
   manifest: "/manifest.json",
 }
