@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { generateId } from "@/utils/id";
 
 const STORAGE_KEY = "daily-tasks:v1";
 
@@ -17,13 +18,6 @@ interface DailyTasksState {
 	deleteTask: (dateKey: string, taskId: string) => void;
 	loadTasksForDate: (dateKey: string) => DailyTask[];
 }
-
-const generateId = () => {
-	if (typeof crypto !== "undefined" && crypto.randomUUID) {
-		return crypto.randomUUID();
-	}
-	return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-};
 
 export const useDailyTasksStore = create<DailyTasksState>()(
 	persist(

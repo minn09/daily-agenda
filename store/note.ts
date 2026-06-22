@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Note } from "@/types/note";
+import { generateId } from "@/utils/id";
 
 const STORAGE_KEY = "diary-standalone-notes:v1";
 
@@ -23,13 +24,6 @@ const loadNotesFromStorage = (): Record<string, Note> => {
 	} catch {
 		return {};
 	}
-};
-
-const generateId = () => {
-	if (typeof crypto !== "undefined" && crypto.randomUUID) {
-		return crypto.randomUUID();
-	}
-	return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 };
 
 export const useNoteStore = create<NoteState>((set, get) => ({
