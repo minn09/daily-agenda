@@ -1,0 +1,20 @@
+# Auto-detect text files and normalize to LF in the repo
+* text=auto
+
+# Explicitly mark these as text (LF in repo, CRLF on Windows checkout)
+*.ts text
+*.tsx text
+*.json text
+*.js text
+*.css text
+*.md text
+*.rs text
+*.toml text
+*.yaml text
+*.yml text
+*.html text
+
+# Binary files — don't touch
+*.png binary
+*.ico binary
+*.icns binary
