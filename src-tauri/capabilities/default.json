@@ -1,0 +1,6 @@
+{
+	"identifier": "default",
+	"description": "Minimal webview permissions",
+	"windows": ["main"],
+	"permissions": ["core:default"]
+}

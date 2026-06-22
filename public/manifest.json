@@ -1,0 +1,27 @@
+{
+	"name": "Mi Diario Personal",
+	"short_name": "Mi Diario",
+	"description": "Tu espacio personal para reflexionar, escribir y hacer seguimiento de tu bienestar emocional día a día.",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#ffffff",
+	"icons": [
+		{
+			"src": "/icon-light.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		},
+		{
+			"src": "/icon-light-32x32.png",
+			"sizes": "32x32",
+			"type": "image/png"
+		},
+		{
+			"src": "/icon-dark-32x32.png",
+			"sizes": "32x32",
+			"type": "image/png",
+			"purpose": "monochrome"
+		}
+	]
+}
