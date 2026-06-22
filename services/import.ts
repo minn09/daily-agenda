@@ -1,6 +1,6 @@
-import type { Note } from "@/store/note";
 import type { StandaloneTask } from "@/store/standalone-tasks";
 import type { DayMetadata } from "@/types/diary";
+import type { Note } from "@/types/note";
 import type { ExportData, MetadataRecord, NotesRecord } from "./export";
 
 export type ValidatedData = ExportData;

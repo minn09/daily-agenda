@@ -1,8 +1,7 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { Note } from "@/types/note";
 import { generateId } from "@/utils/id";
-
-const STORAGE_KEY = "diary-standalone-notes:v1";
 
 interface NoteState {
 	notes: Record<string, Note>;
@@ -12,107 +11,84 @@ interface NoteState {
 	updateNoteTitle: (id: string, title: string) => void;
 	deleteNote: (id: string) => void;
 	setActiveNote: (id: string | null) => void;
-	loadFromStorage: () => void;
-	saveToStorage: () => void;
 }
 
-const loadNotesFromStorage = (): Record<string, Note> => {
-	if (typeof window === "undefined") return {};
-	try {
-		const saved = localStorage.getItem(STORAGE_KEY);
-		return saved ? JSON.parse(saved) : {};
-	} catch {
-		return {};
-	}
-};
+export const useNoteStore = create<NoteState>()(
+	persist(
+		(set, get) => ({
+			notes: {},
+			activeNoteId: null,
 
-export const useNoteStore = create<NoteState>((set, get) => ({
-	notes: {},
-	activeNoteId: null,
+			newNote: () => {
+				const id = generateId();
 
-	newNote: () => {
-		const id = generateId();
+				const untitledCount = Object.values(get().notes).filter((n) =>
+					n.title.startsWith("Nota-"),
+				).length;
 
-		const untitledCount = Object.values(get().notes).filter((n) =>
-			n.title.startsWith("Nota-"),
-		).length;
+				const newNote: Note = {
+					id,
+					title: `Nota ${untitledCount + 1}`,
+					content: "",
+					createdAt: new Date().toISOString(),
+				};
 
-		const newNote: Note = {
-			id,
-			title: `Nota ${untitledCount + 1}`,
-			content: "",
-			createdAt: new Date().toISOString(),
-		};
+				set({ notes: { ...get().notes, [id]: newNote }, activeNoteId: id });
+			},
 
-		set((state) => ({
-			notes: { ...state.notes, [id]: newNote },
-			activeNoteId: id,
-		}));
-		get().saveToStorage();
-	},
+			updateNote: (id, content) => {
+				set((state) => {
+					const existing = state.notes[id];
+					if (!existing) return state;
+					return {
+						notes: {
+							...state.notes,
+							[id]: { ...existing, content },
+						},
+					};
+				});
+			},
 
-	updateNote: (id, content) => {
-		set((state) => {
-			const existing = state.notes[id];
-			if (!existing) return state;
-			return {
-				notes: {
-					...state.notes,
-					[id]: {
-						...existing,
-						content,
-					},
-				},
-			};
-		});
-		get().saveToStorage();
-	},
+			updateNoteTitle: (id, title) => {
+				set((state) => {
+					const existing = state.notes[id];
+					if (!existing) return state;
+					return {
+						notes: {
+							...state.notes,
+							[id]: { ...existing, title },
+						},
+					};
+				});
+			},
 
-	updateNoteTitle: (id, title) => {
-		set((state) => {
-			const existing = state.notes[id];
-			if (!existing) return state;
-			return {
-				notes: {
-					...state.notes,
-					[id]: {
-						...existing,
-						title,
-					},
-				},
-			};
-		});
-		get().saveToStorage();
-	},
+			deleteNote: (id) => {
+				set((state) => {
+					const newNotes = { ...state.notes };
+					delete newNotes[id];
+					return {
+						notes: newNotes,
+						activeNoteId: state.activeNoteId === id ? null : state.activeNoteId,
+					};
+				});
+			},
 
-	deleteNote: (id) => {
-		set((state) => {
-			const newNotes = { ...state.notes };
-			delete newNotes[id];
-			return {
-				notes: newNotes,
-				activeNoteId: state.activeNoteId === id ? null : state.activeNoteId,
-			};
-		});
-		get().saveToStorage();
-	},
+			setActiveNote: (id) => {
+				set({ activeNoteId: id });
+			},
+		}),
+		{
+			name: "diary-standalone-notes:v1",
 
-	setActiveNote: (id) => {
-		set({ activeNoteId: id });
-	},
-
-	loadFromStorage: () => {
-		const notes = loadNotesFromStorage();
-		set({ notes });
-	},
-
-	saveToStorage: () => {
-		if (typeof window === "undefined") return;
-		try {
-			const { notes } = get();
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-		} catch {
-			// localStorage unavailable (incognito, quota exceeded)
-		}
-	},
-}));
+			// Migrate old format (raw notes Record) to persist format
+			merge: (persisted, current) => {
+				const prev = persisted as Partial<NoteState>;
+				if (prev.notes) {
+					return { ...current, ...prev };
+				}
+				// Old format: persisted IS the notes record directly
+				return { ...current, notes: prev as unknown as Record<string, Note> };
+			},
+		},
+	),
+);
