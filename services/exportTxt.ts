@@ -14,6 +14,8 @@ export function exportToTxt(
 	for (const date of dates) {
 		const dayMeta = metadata[date];
 		const note = notes[date] ?? "";
+		if (!dayMeta) continue;
+
 		lines.push(`# ${date}`);
 		lines.push(`mood: ${dayMeta.mood ?? "-"} `);
 		lines.push(`energy: ${dayMeta.energy ?? "-"} `);
@@ -25,7 +27,7 @@ export function exportToTxt(
 			lines.push(`> ${note}`);
 			lines.push("");
 		}
-		if (dayMeta.statusChecks && dayMeta.statusChecks.length) {
+		if (dayMeta.statusChecks.length) {
 			for (const check of dayMeta.statusChecks) {
 				const notePart = check.note ? ` | ${check.note}` : "";
 				lines.push(`~ ${check.time} ${check.status}${notePart}`);
