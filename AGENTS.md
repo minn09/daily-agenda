@@ -37,9 +37,9 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Field       | Value                                                         |
 | ----------- | ------------------------------------------------------------- |
 | Name        | nozen                                                         |
-| Description | Personal daily planner: Diary with mood tracking, Notes, Daily Tasks, Zen mode, and Tauri desktop |
+| Description | Personal daily planner: Diary with mood tracking, Notes, Daily Tasks, and Zen mode |
 | Type        | Next.js 16 App Router (single-page, no routing)              |
-| Platform    | Web (PWA-ready) + Desktop (Tauri v2)                         |
+| Platform    | Web (PWA-ready)                                              |
 | Language    | TypeScript 5.9.3 (strict)                                    |
 
 ### Tech Stack
@@ -60,7 +60,6 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Toast            | Sonner             | 2.0.7     |
 | Themes           | next-themes        | 0.4.6     |
 | Linting/Format   | Biome              | 2.4.13    |
-| Desktop          | Tauri v2 (Rust)    | —         |
 | Package Manager  | pnpm               | 11.15.1   |
 
 ---
@@ -88,9 +87,6 @@ pnpm run check
 
 # Start production
 pnpm run start
-
-# Desktop (Tauri)
-pnpm run tauri:dev
 ```
 
 ---
@@ -223,11 +219,6 @@ const id = generateId();
 ├── constants/               # Constants
 │   ├── prompts.ts           # 26 daily writing prompts (Spanish)
 │   └── diary.ts             # Mood options with icons and colors
-│
-├── src-tauri/               # Tauri v2 desktop wrapper
-│   ├── tauri.conf.json      # App config (1200x800, CSP, icons)
-│   ├── Cargo.toml           # Rust dependencies
-│   └── src/                 # Rust entry point
 │
 ├── public/                  # Static assets (icons, manifest, placeholders)
 ├── .agents/skills/          # AI agent skill packages

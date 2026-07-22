@@ -1,9 +1,0 @@
-{
-	"default": {
-		"identifier": "default",
-		"description": "Minimal webview permissions",
-		"local": true,
-		"windows": ["main"],
-		"permissions": ["core:default"]
-	}
-}

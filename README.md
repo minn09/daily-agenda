@@ -39,10 +39,6 @@ Personal daily planner: diary with mood tracking, notes, daily tasks, zen mode, 
 - Dark / light / system mode
 - Persistent across sessions
 
-### Desktop
-- Tauri v2 wrapper for native desktop experience
-- Same codebase as web version
-
 ## Tech Stack
 
 | Category | Technology | Version |
@@ -61,7 +57,6 @@ Personal daily planner: diary with mood tracking, notes, daily tasks, zen mode, 
 | Toast | Sonner | 2.0.7 |
 | Themes | next-themes | 0.4.6 |
 | Linting | Biome | 2.4.13 |
-| Desktop | Tauri v2 (Rust) | — |
 | Package Manager | pnpm | 11.15.1 |
 
 ## Getting Started
@@ -86,7 +81,6 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm run lint` | Lint with Biome |
 | `pnpm run format` | Format with Biome |
 | `pnpm run check` | Lint + format + write fixes |
-| `pnpm run tauri:dev` | Start Tauri desktop in dev mode |
 
 ## Keyboard Shortcuts
 
@@ -128,7 +122,6 @@ Open [http://localhost:3000](http://localhost:3000).
 ├── types/                # TypeScript types
 ├── utils/                # Utilities (cn, date, id)
 ├── constants/            # Prompts (26), mood options
-├── src-tauri/            # Tauri v2 desktop wrapper
 └── public/               # Static assets, icons, PWA manifest
 ```
 

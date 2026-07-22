@@ -1,5 +1,0 @@
-- [x] Exportación TXT: arreglar bug (salta días sin metadata)
-- [x] Exportación: agregar selector de rango de fechas
-- [x] Backfill: botón "Agregar día" para escribir en fechas pasadas
-- [ ] Toast de eliminación: respetar tema, botón X, posición bottom-right, confirmación configurable
-- [ ] Renombrar proyecto a `nozen` (carpeta y package.json)
