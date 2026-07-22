@@ -48,10 +48,7 @@ export const useNoteStore = create<NoteState>()(
 					return {
 						notes: {
 							...state.notes,
-							[id]: {
-								...existing,
-								content,
-							},
+							[id]: { ...existing, content },
 						},
 					};
 				});
@@ -64,10 +61,7 @@ export const useNoteStore = create<NoteState>()(
 					return {
 						notes: {
 							...state.notes,
-							[id]: {
-								...existing,
-								title,
-							},
+							[id]: { ...existing, title },
 						},
 					};
 				});
@@ -90,6 +84,16 @@ export const useNoteStore = create<NoteState>()(
 		}),
 		{
 			name: STORAGE_KEY,
+
+			// Migrate old format (raw notes Record) to persist format
+			merge: (persisted, current) => {
+				const prev = persisted as Partial<NoteState>;
+				if (prev.notes) {
+					return { ...current, ...prev };
+				}
+				// Old format: persisted IS the notes record directly
+				return { ...current, notes: prev as unknown as Record<string, Note> };
+			},
 		},
 	),
 );

@@ -29,7 +29,5 @@ export const WRITING_PROMPTS = [
 export function getDailyPrompt(date: Date): string {
 	const seed =
 		date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
-	return (
-		WRITING_PROMPTS[seed % WRITING_PROMPTS.length] ?? WRITING_PROMPTS[0] ?? ""
-	);
+	return WRITING_PROMPTS[seed % WRITING_PROMPTS.length]!;
 }

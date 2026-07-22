@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+
 import { es } from "react-day-picker/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { useDiaryStore } from "@/store/diary";
@@ -26,26 +27,6 @@ export function StreakCalendar({ onDateSelect }: StreakCalendarProps) {
 		}
 		return dates;
 	}, [noteContent]);
-
-	const goToToday = useCallback(() => {
-		const today = new Date();
-		setCurrentDate(today);
-		setMonth(today);
-	}, [setCurrentDate]);
-
-	useEffect(() => {
-		const handler = (e: KeyboardEvent) => {
-			if (
-				e.key === "t" &&
-				!["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)
-			) {
-				e.preventDefault();
-				goToToday();
-			}
-		};
-		window.addEventListener("keydown", handler);
-		return () => window.removeEventListener("keydown", handler);
-	}, [goToToday]);
 
 	return (
 		<Calendar

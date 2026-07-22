@@ -4,11 +4,14 @@ import { Bomb, Network, PackageX, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-function ThrowError({ message }: { message: string }) {
-	useEffect(() => {
-		throw new Error(message);
-	}, [message]);
-	return null;
+function ThrowError({
+	type,
+	message,
+}: {
+	type: "runtime" | "build" | "network";
+	message: string;
+}): never {
+	throw new Error(message);
 }
 
 const ERROR_MESSAGES = {
@@ -59,7 +62,7 @@ function SandboxCard({
 			</div>
 
 			{isActive ? (
-				<ThrowError message={ERROR_MESSAGES[type]} />
+				<ThrowError type={type} message={ERROR_MESSAGES[type]} />
 			) : (
 				<Button
 					variant={variant === "destructive" ? "destructive" : "default"}

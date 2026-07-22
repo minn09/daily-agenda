@@ -1,0 +1,5 @@
+allowBuilds:
+  '@tailwindcss/oxide': false
+  sharp: false
+onlyBuiltDependencies:
+  - sharp

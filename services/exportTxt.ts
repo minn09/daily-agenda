@@ -1,5 +1,14 @@
+import type { DayMetadata } from "@/types/diary";
+
+const defaultMeta: DayMetadata = {
+	mood: null,
+	statusChecks: [],
+	energy: null,
+	tags: [],
+};
+
 export function exportToTxt(
-	metadata: Record<string, any>,
+	metadata: Record<string, DayMetadata>,
 	notes: Record<string, string>,
 ) {
 	const lines: string[] = [];
@@ -8,10 +17,13 @@ export function exportToTxt(
 	lines.push(`@export=${new Date().toISOString()}`);
 	lines.push("");
 
-	const dates = Object.keys(metadata).sort();
+	const allDates = new Set([...Object.keys(metadata), ...Object.keys(notes)]);
+	const dates = [...allDates].sort();
 	for (const date of dates) {
-		const dayMeta = metadata[date];
+		const dayMeta = metadata[date] ?? defaultMeta;
 		const note = notes[date] ?? "";
+		if (!metadata[date] && !note.trim()) continue;
+
 		lines.push(`# ${date}`);
 		lines.push(`mood: ${dayMeta.mood ?? "-"} `);
 		lines.push(`energy: ${dayMeta.energy ?? "-"} `);
@@ -23,7 +35,7 @@ export function exportToTxt(
 			lines.push(`> ${note}`);
 			lines.push("");
 		}
-		if (dayMeta.statusChecks && dayMeta.statusChecks.length) {
+		if (dayMeta.statusChecks.length) {
 			for (const check of dayMeta.statusChecks) {
 				const notePart = check.note ? ` | ${check.note}` : "";
 				lines.push(`~ ${check.time} ${check.status}${notePart}`);

@@ -6,7 +6,7 @@ import "./globals.css";
 import { ClientToaster } from "@/components/client-toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Geist({
+const geist = Geist({
 	subsets: ["latin"],
 	display: "swap",
 	variable: "--font-geist",
@@ -99,7 +99,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="es" suppressHydrationWarning className={inter.variable}>
+		<html lang="es" suppressHydrationWarning className={geist.variable}>
 			<head>
 				<link rel="preconnect" href="https://fonts.googleapis.com" />
 				<link

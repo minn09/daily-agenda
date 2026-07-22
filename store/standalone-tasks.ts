@@ -20,7 +20,7 @@ interface StandaloneTasksState {
 
 export const useStandaloneTasksStore = create<StandaloneTasksState>()(
 	persist(
-		(set, get) => ({
+		(set) => ({
 			tasks: [],
 
 			addTask: (text) => {

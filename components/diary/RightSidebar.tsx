@@ -18,7 +18,6 @@ import { useDailyTasksStore } from "@/store/daily-tasks";
 import { useDiaryStore } from "@/store/diary";
 import { useUIStore } from "@/store/ui";
 import { getDateKey } from "@/utils/date";
-import { generateId } from "@/utils/id";
 
 export function RightSidebar() {
 	const { rightSidebarOpen, setRightSidebarOpen, isMobile } = useUIStore();

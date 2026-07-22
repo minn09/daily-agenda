@@ -15,6 +15,28 @@ export interface ExportData {
 	version: string;
 }
 
+function filterByDateRange(
+	metadata: MetadataRecord,
+	notes: NotesRecord,
+	startDate: string,
+	endDate: string,
+): { metadata: MetadataRecord; notes: NotesRecord } {
+	const filteredMetadata: MetadataRecord = {};
+	const filteredNotes: NotesRecord = {};
+
+	const allDates = new Set([...Object.keys(metadata), ...Object.keys(notes)]);
+	const sortedDates = [...allDates].sort();
+
+	for (const date of sortedDates) {
+		if (date >= startDate && date <= endDate) {
+			if (metadata[date]) filteredMetadata[date] = metadata[date];
+			if (notes[date]) filteredNotes[date] = notes[date];
+		}
+	}
+
+	return { metadata: filteredMetadata, notes: filteredNotes };
+}
+
 function serializeToJson(
 	metadata: MetadataRecord,
 	notes: NotesRecord,
@@ -57,15 +79,31 @@ function getExportFilename(extension: string): string {
 	return `diario-export-${date}.${extension}`;
 }
 
+/**
+ * Export data within a date range.
+ * Pass a single date as both start and end to export one day.
+ * Pass undefined to export everything.
+ */
 export function exportToJson(
 	metadata: MetadataRecord,
 	notes: NotesRecord,
 	standaloneNotes: Note[],
 	standaloneTasks: StandaloneTask[],
+	startDate?: string,
+	endDate?: string,
 ): void {
+	let filteredMetadata = metadata;
+	let filteredNotes = notes;
+
+	if (startDate && endDate) {
+		const result = filterByDateRange(metadata, notes, startDate, endDate);
+		filteredMetadata = result.metadata;
+		filteredNotes = result.notes;
+	}
+
 	const data = serializeToJson(
-		metadata,
-		notes,
+		filteredMetadata,
+		filteredNotes,
 		standaloneNotes,
 		standaloneTasks,
 	);
@@ -79,8 +117,19 @@ export function exportToTxtFile(
 	notes: NotesRecord,
 	standaloneNotes: Note[],
 	standaloneTasks: StandaloneTask[],
+	startDate?: string,
+	endDate?: string,
 ): void {
-	const txt = exportToTxt(metadata, notes);
+	let filteredMetadata = metadata;
+	let filteredNotes = notes;
+
+	if (startDate && endDate) {
+		const result = filterByDateRange(metadata, notes, startDate, endDate);
+		filteredMetadata = result.metadata;
+		filteredNotes = result.notes;
+	}
+
+	const txt = exportToTxt(filteredMetadata, filteredNotes);
 	const blob = generateTxtBlob(txt);
 	const date = new Date().toISOString().split("T")[0];
 	downloadBlob(blob, `diario-${date}.txt`);

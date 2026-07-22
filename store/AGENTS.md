@@ -8,10 +8,10 @@
 
 ## ID Generation
 
-Always use `crypto.randomUUID()` — never `Math.random()`. Import from `@/lib/utils/id`:
+Always use `crypto.randomUUID()` — never `Math.random()`. Import from `@/utils/id`:
 
 ```typescript
-import { generateId } from "@/lib/utils/id";
+import { generateId } from "@/utils/id";
 const id = generateId();
 ```
 
