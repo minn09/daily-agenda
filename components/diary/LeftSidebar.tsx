@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
 	BookOpen,
 	Calendar,
+	CalendarDays,
 	ChevronDown,
 	ChevronUp,
 	Download,
@@ -27,6 +28,7 @@ import { useNoteStore } from "@/store/note";
 import { useStandaloneTasksStore } from "@/store/standalone-tasks";
 import { useUIStore } from "@/store/ui";
 import { useUserPreferencesStore } from "@/store/user-preferences";
+import { getDateKey } from "@/utils/date";
 
 import { StreakCalendar } from "./StreakCalendar";
 
@@ -34,6 +36,10 @@ export function LeftSidebar() {
 	const { leftSidebarOpen, setLeftSidebarOpen, isMobile } = useUIStore();
 	const { confirmBeforeDelete } = useUserPreferencesStore();
 	const [showCalendar, setShowCalendar] = useState(true);
+	const [showRangeExport, setShowRangeExport] = useState(false);
+	const [rangeStart, setRangeStart] = useState("");
+	const [rangeEnd, setRangeEnd] = useState("");
+	const [backfillDate, setBackfillDate] = useState("");
 
 	const { currentDate, setCurrentDate, metadata, noteContent } =
 		useDiaryStore();
@@ -58,17 +64,91 @@ export function LeftSidebar() {
 		toast.success("Nota eliminada");
 	};
 
-	const handleExportJson = () => {
+	// --- Export handlers ---
+
+	const handleExportAllJson = () => {
 		const notesArray = Object.values(notes);
 		exportToJson(metadata, noteContent, notesArray, standaloneTasks);
-		toast.success("Datos exportados correctamente");
+		toast.success("Todos los datos exportados (JSON)");
 	};
 
-	const handleExportTxt = () => {
+	const handleExportAllTxt = () => {
 		const notesArray = Object.values(notes);
 		exportToTxtFile(metadata, noteContent, notesArray, standaloneTasks);
-		toast.success("Datos exportados correctamente");
+		toast.success("Todos los datos exportados (TXT)");
 	};
+
+	const handleExportCurrentDayJson = () => {
+		const dateKey = getDateKey(currentDate);
+		const notesArray = Object.values(notes);
+		exportToJson(
+			metadata,
+			noteContent,
+			notesArray,
+			standaloneTasks,
+			dateKey,
+			dateKey,
+		);
+		toast.success(`Día exportado: ${dateKey} (JSON)`);
+	};
+
+	const handleExportCurrentDayTxt = () => {
+		const dateKey = getDateKey(currentDate);
+		const notesArray = Object.values(notes);
+		exportToTxtFile(
+			metadata,
+			noteContent,
+			notesArray,
+			standaloneTasks,
+			dateKey,
+			dateKey,
+		);
+		toast.success(`Día exportado: ${dateKey} (TXT)`);
+	};
+
+	const handleExportRangeJson = () => {
+		if (!rangeStart || !rangeEnd) {
+			toast.error("Seleccioná ambas fechas");
+			return;
+		}
+		if (rangeStart > rangeEnd) {
+			toast.error("La fecha inicial debe ser anterior a la final");
+			return;
+		}
+		const notesArray = Object.values(notes);
+		exportToJson(
+			metadata,
+			noteContent,
+			notesArray,
+			standaloneTasks,
+			rangeStart,
+			rangeEnd,
+		);
+		toast.success(`Rango exportado: ${rangeStart} → ${rangeEnd} (JSON)`);
+	};
+
+	const handleExportRangeTxt = () => {
+		if (!rangeStart || !rangeEnd) {
+			toast.error("Seleccioná ambas fechas");
+			return;
+		}
+		if (rangeStart > rangeEnd) {
+			toast.error("La fecha inicial debe ser anterior a la final");
+			return;
+		}
+		const notesArray = Object.values(notes);
+		exportToTxtFile(
+			metadata,
+			noteContent,
+			notesArray,
+			standaloneTasks,
+			rangeStart,
+			rangeEnd,
+		);
+		toast.success(`Rango exportado: ${rangeStart} → ${rangeEnd} (TXT)`);
+	};
+
+	// --- Import handler ---
 
 	const handleImportJson = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -111,6 +191,22 @@ export function LeftSidebar() {
 		);
 		event.target.value = "";
 	};
+
+	// --- Backfill handler ---
+
+	const handleBackfill = (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!backfillDate) return;
+		const [y, m, d] = backfillDate.split("-").map(Number);
+		const date = new Date(y!, m! - 1, d!);
+		setCurrentDate(date);
+		setActiveNote(null);
+		setBackfillDate("");
+		if (isMobile) setLeftSidebarOpen(false);
+		toast.success(`Navegando al ${backfillDate}`);
+	};
+
+	// --- Calendar date select ---
 
 	const handleDateSelect = (date: Date) => {
 		setActiveNote(null);
@@ -156,6 +252,7 @@ export function LeftSidebar() {
 			</div>
 
 			<div className="flex-1 p-4 overflow-y-auto space-y-6">
+				{/* Calendar */}
 				<div className="space-y-2">
 					<button
 						type="button"
@@ -179,6 +276,26 @@ export function LeftSidebar() {
 					)}
 				</div>
 
+				{/* Backfill: Agregar día */}
+				<div className="space-y-2">
+					<p className="text-xs font-semibold text-sidebar-foreground/50 uppercase px-2 flex items-center gap-1.5">
+						<CalendarDays className="w-3.5 h-3.5" />
+						Agregar día
+					</p>
+					<form onSubmit={handleBackfill} className="flex gap-2 px-2">
+						<input
+							type="date"
+							value={backfillDate}
+							onChange={(e) => setBackfillDate(e.target.value)}
+							className="flex-1 bg-background border border-input rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+						/>
+						<Button type="submit" size="icon" variant="outline">
+							<Plus className="w-4 h-4" />
+						</Button>
+					</form>
+				</div>
+
+				{/* Notes */}
 				<div className="space-y-2">
 					<p className="text-xs font-semibold text-sidebar-foreground/50 uppercase flex items-center gap-2">
 						Notas
@@ -237,27 +354,144 @@ export function LeftSidebar() {
 
 				<Separator className="my-4" />
 
+				{/* Export section */}
 				<div className="space-y-2">
 					<p className="text-xs font-semibold text-sidebar-foreground/50 uppercase px-2">
 						Datos
 					</p>
-					<Button
-						variant="ghost"
-						className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-						onClick={handleExportJson}
-					>
-						<Download className="w-4 h-4 mr-2" />
-						Exportar JSON
-					</Button>
-					<Button
-						variant="ghost"
-						className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-						onClick={handleExportTxt}
-					>
-						<Download className="w-4 h-4 mr-2" />
-						Exportar TXT
-					</Button>
-					<div className="relative">
+
+					{/* Current day export */}
+					<div className="px-2">
+						<p className="text-[10px] text-sidebar-foreground/40 mb-1">
+							Día actual
+						</p>
+						<div className="flex gap-1">
+							<Button
+								variant="ghost"
+								size="sm"
+								className="flex-1 justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+								onClick={handleExportCurrentDayJson}
+							>
+								<Download className="w-3.5 h-3.5 mr-1.5" />
+								JSON
+							</Button>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="flex-1 justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+								onClick={handleExportCurrentDayTxt}
+							>
+								<Download className="w-3.5 h-3.5 mr-1.5" />
+								TXT
+							</Button>
+						</div>
+					</div>
+
+					<Separator className="my-2" />
+
+					{/* Range export */}
+					<div className="px-2">
+						<button
+							type="button"
+							onClick={() => setShowRangeExport((v) => !v)}
+							className="w-full flex items-center justify-between text-[10px] text-sidebar-foreground/40 mb-1"
+						>
+							<span>Rango de fechas</span>
+							{showRangeExport ? (
+								<ChevronUp className="w-3 h-3" />
+							) : (
+								<ChevronDown className="w-3 h-3" />
+							)}
+						</button>
+						{showRangeExport && (
+							<div className="space-y-2">
+								<div className="flex gap-2">
+									<div className="flex-1">
+										<label
+											htmlFor="range-start"
+											className="text-[10px] text-sidebar-foreground/30"
+										>
+											Desde
+										</label>
+										<input
+											id="range-start"
+											type="date"
+											value={rangeStart}
+											onChange={(e) => setRangeStart(e.target.value)}
+											className="w-full bg-background border border-input rounded-md px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+										/>
+									</div>
+									<div className="flex-1">
+										<label
+											htmlFor="range-end"
+											className="text-[10px] text-sidebar-foreground/30"
+										>
+											Hasta
+										</label>
+										<input
+											id="range-end"
+											type="date"
+											value={rangeEnd}
+											onChange={(e) => setRangeEnd(e.target.value)}
+											className="w-full bg-background border border-input rounded-md px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+										/>
+									</div>
+								</div>
+								<div className="flex gap-1">
+									<Button
+										variant="ghost"
+										size="sm"
+										className="flex-1 justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+										onClick={handleExportRangeJson}
+									>
+										<Download className="w-3.5 h-3.5 mr-1.5" />
+										JSON
+									</Button>
+									<Button
+										variant="ghost"
+										size="sm"
+										className="flex-1 justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+										onClick={handleExportRangeTxt}
+									>
+										<Download className="w-3.5 h-3.5 mr-1.5" />
+										TXT
+									</Button>
+								</div>
+							</div>
+						)}
+					</div>
+
+					<Separator className="my-2" />
+
+					{/* Full export */}
+					<div className="px-2">
+						<p className="text-[10px] text-sidebar-foreground/40 mb-1">Todo</p>
+						<div className="flex gap-1">
+							<Button
+								variant="ghost"
+								size="sm"
+								className="flex-1 justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+								onClick={handleExportAllJson}
+							>
+								<Download className="w-3.5 h-3.5 mr-1.5" />
+								JSON
+							</Button>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="flex-1 justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+								onClick={handleExportAllTxt}
+							>
+								<Download className="w-3.5 h-3.5 mr-1.5" />
+								TXT
+							</Button>
+						</div>
+					</div>
+
+					<Separator className="my-2" />
+
+					{/* Import */}
+					<div className="relative px-2">
 						<Button
 							variant="ghost"
 							className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
@@ -273,6 +507,7 @@ export function LeftSidebar() {
 							title="Importar archivo JSON"
 						/>
 					</div>
+
 					{process.env.NODE_ENV === "development" && (
 						<>
 							<Separator className="my-4" />
