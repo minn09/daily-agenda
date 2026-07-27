@@ -191,6 +191,7 @@ export function WritingArea() {
 
 	const diaryInputRef = useRef<HTMLTextAreaElement>(null);
 	const noteInputRef = useRef<HTMLTextAreaElement>(null);
+	const lastEmptyEnterRef = useRef(false);
 
 	const insertBullet = useCallback(
 		(
@@ -283,12 +284,18 @@ export function WritingArea() {
 					const isEmpty = currentLine === bulletMatch[0].trimEnd();
 
 					if (isEmpty) {
-						const newValue = `${before.slice(0, lineStart)}${after}`;
-						setter(newValue);
-						requestAnimationFrame(() => {
-							el.setSelectionRange(lineStart, lineStart);
-						});
+						if (lastEmptyEnterRef.current) {
+							lastEmptyEnterRef.current = false;
+							const newValue = `${before.slice(0, lineStart)}${after}`;
+							setter(newValue);
+							requestAnimationFrame(() => {
+								el.setSelectionRange(lineStart, lineStart);
+							});
+						} else {
+							lastEmptyEnterRef.current = true;
+						}
 					} else {
+						lastEmptyEnterRef.current = false;
 						const symbol = bulletMatch[1];
 						const newValue = `${before}\n${symbol} ${after}`;
 						setter(newValue);
@@ -297,6 +304,8 @@ export function WritingArea() {
 							el.setSelectionRange(newPos, newPos);
 						});
 					}
+				} else {
+					lastEmptyEnterRef.current = false;
 				}
 				return;
 			}
