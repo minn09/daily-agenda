@@ -45,3 +45,6 @@ TODO.MD
 
 # Tauri
 /src-tauri/target/
+
+# Docs (local notes, not deployed)
+/docs/
