@@ -111,9 +111,7 @@ function CopyTasksButton({
 
 	const handleCopy = async () => {
 		await navigator.clipboard.writeText(JSON.stringify(tasks, null, 2));
-		toast.success(`${tasks.length} tareas copiadas`, {
-			description: "Listo para pegar en otra app",
-		});
+		toast.success(`${tasks.length} tareas copiadas con éxito`);
 	};
 
 	return (
@@ -219,6 +217,34 @@ export function WritingArea() {
 		},
 		[],
 	);
+
+	const handleCopy = useCallback((text: string) => {
+		const tasks = extractTasks(text);
+		if (tasks.length === 0) return;
+		navigator.clipboard.writeText(JSON.stringify(tasks, null, 2));
+		toast.success(`${tasks.length} tareas copiadas con éxito`);
+	}, []);
+
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			if (!e.ctrlKey || e.key !== "c") return;
+
+			const active = document.activeElement;
+			if (active instanceof HTMLTextAreaElement) {
+				const hasSelection = active.selectionStart !== active.selectionEnd;
+				if (hasSelection) return;
+			}
+
+			const activeNote = activeNoteId ? notes[activeNoteId] : null;
+			const text = activeNote ? activeNote.content : noteContent[dateKey] || "";
+			if (!text) return;
+
+			e.preventDefault();
+			handleCopy(text);
+		};
+		window.addEventListener("keydown", handler);
+		return () => window.removeEventListener("keydown", handler);
+	}, [activeNoteId, notes, noteContent, dateKey, handleCopy]);
 
 	const handleDiaryBullet = useCallback(
 		(symbol: string) => {
