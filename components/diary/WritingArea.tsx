@@ -269,6 +269,38 @@ export function WritingArea() {
 			currentValue: string,
 			setter: (v: string) => void,
 		) => {
+			if (e.key === "Enter") {
+				const el = e.currentTarget;
+				const pos = el.selectionStart;
+				const before = currentValue.slice(0, pos);
+				const lineStart = before.lastIndexOf("\n") + 1;
+				const currentLine = before.slice(lineStart);
+				const bulletMatch = currentLine.match(/^([•–○])\s?/);
+
+				if (bulletMatch) {
+					e.preventDefault();
+					const after = currentValue.slice(el.selectionEnd);
+					const isEmpty = currentLine === bulletMatch[0].trimEnd();
+
+					if (isEmpty) {
+						const newValue = `${before.slice(0, lineStart)}${after}`;
+						setter(newValue);
+						requestAnimationFrame(() => {
+							el.setSelectionRange(lineStart, lineStart);
+						});
+					} else {
+						const symbol = bulletMatch[1];
+						const newValue = `${before}\n${symbol} ${after}`;
+						setter(newValue);
+						requestAnimationFrame(() => {
+							const newPos = pos + 1 + symbol.length + 1;
+							el.setSelectionRange(newPos, newPos);
+						});
+					}
+				}
+				return;
+			}
+
 			const trigger = BULLET_TRIGGER_MAP[e.key];
 			if (!trigger) return;
 
