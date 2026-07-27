@@ -2,13 +2,14 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getDailyPrompt } from "@/constants/prompts";
 import { useDiaryStore } from "@/store/diary";
 import { useNoteStore } from "@/store/note";
 import { useUIStore } from "@/store/ui";
 import { cn } from "@/utils";
 import { getDateKey } from "@/utils/date";
+import { BulletBar } from "./BulletBar";
 import { StreakCalendar } from "./StreakCalendar";
 
 function countWords(text: string): number {
@@ -80,15 +81,18 @@ function ZenTextarea({
 	placeholder,
 	zenMode,
 	serifMode,
+	inputRef,
 }: {
 	value: string;
 	onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 	placeholder: string;
 	zenMode: boolean;
 	serifMode: boolean;
+	inputRef?: React.RefObject<HTMLTextAreaElement | null>;
 }) {
 	return (
 		<textarea
+			ref={inputRef}
 			value={value}
 			onChange={onChange}
 			placeholder={placeholder}
@@ -122,6 +126,52 @@ export function WritingArea() {
 	const showPrompt = zenMode && !content.trim() && !activeNote;
 	const [showZenCalendar, setShowZenCalendar] = useState(true);
 
+	const diaryInputRef = useRef<HTMLTextAreaElement>(null);
+	const noteInputRef = useRef<HTMLTextAreaElement>(null);
+
+	const insertBullet = useCallback(
+		(
+			ref: React.RefObject<HTMLTextAreaElement | null>,
+			currentValue: string,
+			symbol: string,
+			setter: (v: string) => void,
+		) => {
+			const el = ref.current;
+			const cursorPos = el?.selectionStart ?? currentValue.length;
+			const before = currentValue.slice(0, cursorPos);
+			const after = currentValue.slice(cursorPos);
+			const needsNewline = before.length > 0 && !before.endsWith("\n");
+			const prefix = needsNewline ? "\n" : "";
+			const newValue = `${before}${prefix}${symbol} ${after}`;
+			setter(newValue);
+			requestAnimationFrame(() => {
+				if (el) {
+					const newPos = cursorPos + prefix.length + symbol.length + 1;
+					el.setSelectionRange(newPos, newPos);
+					el.focus();
+				}
+			});
+		},
+		[],
+	);
+
+	const handleDiaryBullet = useCallback(
+		(symbol: string) => {
+			insertBullet(diaryInputRef, content, symbol, updateNote);
+		},
+		[content, updateNote, insertBullet],
+	);
+
+	const handleNoteBullet = useCallback(
+		(symbol: string) => {
+			if (!activeNote) return;
+			insertBullet(noteInputRef, activeNote.content, symbol, (v) =>
+				updateNoteStore(activeNote.id, v),
+			);
+		},
+		[activeNote, updateNoteStore, insertBullet],
+	);
+
 	const wrapperCn = cn(
 		"flex-1 overflow-y-auto transition-all duration-300",
 		zenMode ? "p-12 flex flex-col" : "p-8",
@@ -152,12 +202,14 @@ export function WritingArea() {
 						placeholder="Título de la nota..."
 					/>
 					<div className="flex-1 flex flex-col gap-4">
+						<BulletBar onInsert={handleNoteBullet} zenMode={zenMode} />
 						<ZenTextarea
 							value={activeNote.content}
 							onChange={(e) => updateNoteStore(activeNote.id, e.target.value)}
 							placeholder="Escribe tu nota..."
 							zenMode={zenMode}
 							serifMode={serifMode}
+							inputRef={noteInputRef}
 						/>
 						<div
 							className={cn(
@@ -189,6 +241,7 @@ export function WritingArea() {
 					)}
 				>
 					<DailyPrompt date={currentDate} visible={showPrompt} />
+					<BulletBar onInsert={handleDiaryBullet} zenMode={zenMode} />
 					<ZenTextarea
 						value={content}
 						onChange={(e) => updateNote(e.target.value)}
@@ -199,6 +252,7 @@ export function WritingArea() {
 						}
 						zenMode={zenMode}
 						serifMode={serifMode}
+						inputRef={diaryInputRef}
 					/>
 					<div
 						className={cn(
