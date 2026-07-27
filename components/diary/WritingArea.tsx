@@ -191,7 +191,6 @@ export function WritingArea() {
 
 	const diaryInputRef = useRef<HTMLTextAreaElement>(null);
 	const noteInputRef = useRef<HTMLTextAreaElement>(null);
-	const lastEmptyEnterRef = useRef(false);
 
 	const insertBullet = useCallback(
 		(
@@ -279,33 +278,30 @@ export function WritingArea() {
 				const bulletMatch = currentLine.match(/^([•–○])\s?/);
 
 				if (bulletMatch) {
-					e.preventDefault();
 					const after = currentValue.slice(el.selectionEnd);
-					const isEmpty = currentLine === bulletMatch[0].trimEnd();
 
-					if (isEmpty) {
-						if (lastEmptyEnterRef.current) {
-							lastEmptyEnterRef.current = false;
-							const newValue = `${before.slice(0, lineStart)}${after}`;
-							setter(newValue);
-							requestAnimationFrame(() => {
-								el.setSelectionRange(lineStart, lineStart);
-							});
-						} else {
-							lastEmptyEnterRef.current = true;
-						}
-					} else {
-						lastEmptyEnterRef.current = false;
-						const symbol = bulletMatch[1];
-						const newValue = `${before}\n${symbol} ${after}`;
+					if (e.ctrlKey) {
+						e.preventDefault();
+						const stripped = before.slice(0, lineStart);
+						const newValue = `${stripped}${after}`;
 						setter(newValue);
 						requestAnimationFrame(() => {
-							const newPos = pos + 1 + symbol.length + 1;
-							el.setSelectionRange(newPos, newPos);
+							el.setSelectionRange(lineStart, lineStart);
 						});
+						return;
 					}
-				} else {
-					lastEmptyEnterRef.current = false;
+
+					const isEmpty = currentLine === bulletMatch[0].trimEnd();
+					if (isEmpty) return;
+
+					e.preventDefault();
+					const symbol = bulletMatch[1];
+					const newValue = `${before}\n${symbol} ${after}`;
+					setter(newValue);
+					requestAnimationFrame(() => {
+						const newPos = pos + 1 + symbol.length + 1;
+						el.setSelectionRange(newPos, newPos);
+					});
 				}
 				return;
 			}
