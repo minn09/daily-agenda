@@ -25,6 +25,9 @@ export function BulletBar({ onInsert, zenMode }: BulletBarProps) {
 					>
 						<Icon className="w-3 h-3" />
 						<span>{opt.label}</span>
+						<kbd className="ml-0.5 px-1 py-0.5 text-[10px] font-mono rounded bg-muted/60 text-muted-foreground/40 leading-none">
+							{opt.trigger}
+						</kbd>
 					</motion.button>
 				);
 			})}
