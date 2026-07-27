@@ -282,11 +282,13 @@ export function WritingArea() {
 
 					if (e.ctrlKey) {
 						e.preventDefault();
-						const stripped = before.slice(0, lineStart);
-						const newValue = `${stripped}${after}`;
+						const lineEnd = before.indexOf("\n", lineStart);
+						const insertPos = lineEnd === -1 ? currentValue.length : lineEnd;
+						const newValue = `${currentValue.slice(0, insertPos)}\n${currentValue.slice(insertPos)}`;
 						setter(newValue);
 						requestAnimationFrame(() => {
-							el.setSelectionRange(lineStart, lineStart);
+							const newPos = insertPos + 1;
+							el.setSelectionRange(newPos, newPos);
 						});
 						return;
 					}
