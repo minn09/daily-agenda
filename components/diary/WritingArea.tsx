@@ -1,8 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+	Calendar,
+	CheckCircle2,
+	ChevronDown,
+	ChevronUp,
+	Copy,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { getDailyPrompt } from "@/constants/prompts";
 import { useDiaryStore } from "@/store/diary";
 import { useNoteStore } from "@/store/note";
@@ -72,6 +79,55 @@ function DailyPrompt({ date, visible }: { date: Date; visible: boolean }) {
 		>
 			{prompt}
 		</motion.p>
+	);
+}
+
+function extractTasks(text: string): { text: string; done: boolean }[] {
+	return text
+		.split("\n")
+		.filter((line) => /^\s*[•–○]/.test(line))
+		.map((line) => {
+			const cleaned = line.replace(/^\s*[•–○]\s*/, "");
+			return { text: cleaned, done: false };
+		});
+}
+
+function CopyTasksButton({
+	content,
+	zenMode,
+}: {
+	content: string;
+	zenMode: boolean;
+}) {
+	const tasks = useMemo(() => extractTasks(content), [content]);
+
+	if (tasks.length === 0) return null;
+
+	const handleCopy = async () => {
+		await navigator.clipboard.writeText(JSON.stringify(tasks, null, 2));
+		toast.success(`${tasks.length} tareas copiadas`, {
+			description: "Listo para pegar en otra app",
+		});
+	};
+
+	return (
+		<motion.button
+			type="button"
+			onClick={handleCopy}
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			whileHover={{ scale: 1.05 }}
+			whileTap={{ scale: 0.95 }}
+			className={cn(
+				"inline-flex items-center gap-1.5 text-xs transition-colors cursor-pointer select-none",
+				zenMode
+					? "text-muted-foreground/40 hover:text-muted-foreground/70"
+					: "text-muted-foreground/50 hover:text-muted-foreground/80",
+			)}
+		>
+			<Copy className="w-3 h-3" />
+			Copiar tareas ({tasks.length})
+		</motion.button>
 	);
 }
 
@@ -217,6 +273,7 @@ export function WritingArea() {
 								zenMode ? "justify-center" : "justify-end",
 							)}
 						>
+							<CopyTasksButton content={activeNote.content} zenMode={zenMode} />
 							<SavedIndicator lastSavedAt={lastSavedAt} />
 							<WordCount text={activeNote.content} visible={zenMode} />
 						</div>
@@ -260,6 +317,7 @@ export function WritingArea() {
 							zenMode ? "justify-center" : "justify-end",
 						)}
 					>
+						<CopyTasksButton content={content} zenMode={zenMode} />
 						<SavedIndicator lastSavedAt={lastSavedAt} />
 						<WordCount text={content} visible={zenMode} />
 					</div>
