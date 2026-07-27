@@ -110,7 +110,9 @@ function CopyTasksButton({
 	if (tasks.length === 0) return null;
 
 	const handleCopy = async () => {
-		await navigator.clipboard.writeText(JSON.stringify(tasks, null, 2));
+		const today = new Date().toISOString().split("T")[0];
+		const text = tasks.map((t) => `- ${t.text} | ${today}`).join("\n");
+		await navigator.clipboard.writeText(text);
 		toast.success(`${tasks.length} tareas copiadas con éxito`);
 	};
 
@@ -221,7 +223,9 @@ export function WritingArea() {
 	const handleCopy = useCallback((text: string) => {
 		const tasks = extractTasks(text);
 		if (tasks.length === 0) return;
-		navigator.clipboard.writeText(JSON.stringify(tasks, null, 2));
+		const today = new Date().toISOString().split("T")[0];
+		const output = tasks.map((t) => `- ${t.text} | ${today}`).join("\n");
+		navigator.clipboard.writeText(output);
 		toast.success(`${tasks.length} tareas copiadas con éxito`);
 	}, []);
 
