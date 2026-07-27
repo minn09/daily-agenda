@@ -19,6 +19,12 @@ import { getDateKey } from "@/utils/date";
 import { BulletBar } from "./BulletBar";
 import { StreakCalendar } from "./StreakCalendar";
 
+const BULLET_TRIGGER_MAP: Record<string, string> = {
+	"(": "•",
+	"-": "–",
+	")": "○",
+};
+
 function countWords(text: string): number {
 	return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
@@ -85,9 +91,9 @@ function DailyPrompt({ date, visible }: { date: Date; visible: boolean }) {
 function extractTasks(text: string): { text: string; done: boolean }[] {
 	return text
 		.split("\n")
-		.filter((line) => /^\s*[•–○]/.test(line))
+		.filter((line) => /^\s*•/.test(line))
 		.map((line) => {
-			const cleaned = line.replace(/^\s*[•–○]\s*/, "");
+			const cleaned = line.replace(/^\s*•\s*/, "");
 			return { text: cleaned, done: false };
 		});
 }
@@ -134,6 +140,7 @@ function CopyTasksButton({
 function ZenTextarea({
 	value,
 	onChange,
+	onKeyDown,
 	placeholder,
 	zenMode,
 	serifMode,
@@ -141,6 +148,7 @@ function ZenTextarea({
 }: {
 	value: string;
 	onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 	placeholder: string;
 	zenMode: boolean;
 	serifMode: boolean;
@@ -151,6 +159,7 @@ function ZenTextarea({
 			ref={inputRef}
 			value={value}
 			onChange={onChange}
+			onKeyDown={onKeyDown}
 			placeholder={placeholder}
 			className={cn(
 				"w-full flex-1 bg-transparent border-none outline-none resize-none text-foreground placeholder:text-muted-foreground p-0 transition-all duration-300",
@@ -228,6 +237,51 @@ export function WritingArea() {
 		[activeNote, updateNoteStore, insertBullet],
 	);
 
+	const handleAutoBullet = useCallback(
+		(
+			e: React.KeyboardEvent<HTMLTextAreaElement>,
+			currentValue: string,
+			setter: (v: string) => void,
+		) => {
+			const trigger = BULLET_TRIGGER_MAP[e.key];
+			if (!trigger) return;
+
+			const el = e.currentTarget;
+			const pos = el.selectionStart;
+			const before = currentValue.slice(0, pos);
+			const isLineStart = pos === 0 || before.endsWith("\n");
+
+			if (!isLineStart) return;
+
+			e.preventDefault();
+			const after = currentValue.slice(el.selectionEnd);
+			const newValue = `${before}${trigger} ${after}`;
+			setter(newValue);
+			requestAnimationFrame(() => {
+				const newPos = pos + trigger.length + 1;
+				el.setSelectionRange(newPos, newPos);
+			});
+		},
+		[],
+	);
+
+	const handleDiaryAutoBullet = useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			handleAutoBullet(e, content, updateNote);
+		},
+		[content, updateNote, handleAutoBullet],
+	);
+
+	const handleNoteAutoBullet = useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			if (!activeNote) return;
+			handleAutoBullet(e, activeNote.content, (v) =>
+				updateNoteStore(activeNote.id, v),
+			);
+		},
+		[activeNote, updateNoteStore, handleAutoBullet],
+	);
+
 	const wrapperCn = cn(
 		"flex-1 overflow-y-auto transition-all duration-300",
 		zenMode ? "p-12 flex flex-col" : "p-8",
@@ -262,6 +316,7 @@ export function WritingArea() {
 						<ZenTextarea
 							value={activeNote.content}
 							onChange={(e) => updateNoteStore(activeNote.id, e.target.value)}
+							onKeyDown={handleNoteAutoBullet}
 							placeholder="Escribe tu nota..."
 							zenMode={zenMode}
 							serifMode={serifMode}
@@ -302,6 +357,7 @@ export function WritingArea() {
 					<ZenTextarea
 						value={content}
 						onChange={(e) => updateNote(e.target.value)}
+						onKeyDown={handleDiaryAutoBullet}
 						placeholder={
 							showPrompt
 								? "Escribe algo..."
